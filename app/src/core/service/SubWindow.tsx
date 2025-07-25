@@ -44,7 +44,6 @@ export namespace SubWindow {
     const win: Window = {
       id: crypto.randomUUID(),
       title: "",
-      children: <></>,
       rect: new Rectangle(Vector.getZero(), Vector.same(100)),
       maximized: false,
       minimized: false,
@@ -57,8 +56,10 @@ export namespace SubWindow {
       closeWhenClickOutside: false,
       closeWhenClickInside: false,
       ...options,
+      // 先不急着添加内容
+      children: null,
     };
-    //检测如果窗口到屏幕外面了，自动调整位置
+    // 检测如果窗口到屏幕外面了，自动调整位置
     const { x: width, y: height } = win.rect.size;
     const { innerWidth, innerHeight } = window;
     if (win.rect.location.x + width > innerWidth) {
@@ -69,6 +70,11 @@ export namespace SubWindow {
     }
     // 窗口创建完成，添加到store中
     store.set(subWindowsAtom, [...store.get(subWindowsAtom), win]);
+    setTimeout(() => {
+      startTransition(() => {
+        update(win.id, { children: options.children });
+      });
+    }, 75);
     if (options.closeWhenClickOutside) {
       win._closeWhenClickOutsideListener = (e: PointerEvent) => {
         if (e.target instanceof HTMLElement && e.target.closest(`[data-pg-window-id="${win.id}"]`)) {

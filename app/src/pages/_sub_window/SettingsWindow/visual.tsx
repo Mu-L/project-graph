@@ -23,6 +23,7 @@ import {
   Scaling,
   Settings,
   Space,
+  Sparkle,
   Spline,
   Square,
   SquareM,
@@ -44,6 +45,8 @@ export default function Visual() {
         <SettingField icon={<AppWindowMac />} settingKey="useNativeTitleBar" type="switch" />
         <SettingField icon={<Presentation />} settingKey="isClassroomMode" type="switch" />
         <SettingField icon={<Blend />} settingKey="windowBackgroundAlpha" type="slider" min={0} max={1} step={0.01} />
+        <SettingField icon={<Sparkle />} settingKey="maxFps" type="slider" min={0} max={240} step={5} />
+        <SettingField icon={<Sparkle />} settingKey="maxFpsUnfocused" type="slider" min={0} max={240} step={5} />
       </FieldGroup>
       <FieldGroup title={t("background.title")} icon={<Grip />}>
         <SettingField icon={<Crosshair />} settingKey="isRenderCenterPointer" type="switch" />

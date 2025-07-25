@@ -50,6 +50,8 @@ export namespace Settings {
     textCacheSize: number;
     textScalingBehavior: "temp" | "nearestCache" | "cacheEveryTick";
     antialiasing: "disabled" | "low" | "medium" | "high";
+    maxFps: number;
+    maxFpsUnfocused: number;
     // 特效开关列表
     effectsPerferences: Record<string, boolean>;
     isEnableEntityCollision: boolean;
@@ -192,6 +194,8 @@ export namespace Settings {
     textCacheSize: 100,
     textScalingBehavior: "temp",
     antialiasing: "low",
+    maxFps: 60,
+    maxFpsUnfocused: 30,
     // 自动相关
     autoNamerTemplate: "...",
     autoNamerSectionTemplate: "Section_{{i}}",
@@ -272,14 +276,6 @@ export namespace Settings {
   export async function init() {
     store = await createStore("settings.json");
     Object.assign(sync, Object.fromEntries(await store.entries()));
-    // 调用所有watcher
-    Object.entries(callbacks).forEach(([key, callbacks]) => {
-      callbacks.forEach((callback) => {
-        get(key as keyof Settings).then((value) => {
-          callback(value);
-        });
-      });
-    });
     // 兼容在旧版本保存的设置项
     if (await has("uiTheme")) {
       set("theme", "dark");
@@ -304,20 +300,10 @@ export namespace Settings {
       return res;
     }
   }
-
-  const callbacks: {
-    [key: string]: Array<(value: any) => void>;
-  } = {};
-
   export function set<K extends keyof Settings>(key: K, value: Settings[K]) {
     store.set(key, value);
     store.save();
     sync[key] = value;
-
-    // 调用所有监听该键的回调函数
-    if (callbacks[key]) {
-      callbacks[key].forEach((callback) => callback(value));
-    }
   }
 
   /**
@@ -326,18 +312,11 @@ export namespace Settings {
    * @param callback 设置变化时的回调函数
    */
   export function watch<K extends keyof Settings>(key: K, callback: (value: Settings[K]) => void) {
-    if (!callbacks[key]) {
-      callbacks[key] = [];
-    }
-    callbacks[key].push(callback);
-    if (store) {
-      get(key).then((value) => {
-        callback(value);
-      });
-    }
-    return () => {
-      callbacks[key] = callbacks[key].filter((cb) => cb !== callback);
-    };
+    return store.onKeyChange(key, (value) => {
+      if (value) {
+        callback(value as any);
+      }
+    });
   }
 
   /**
@@ -351,11 +330,14 @@ export namespace Settings {
       get(key)
         .then(setValue)
         .then(() => setInited(true));
-      const unwatch = watch(key, (newValue) => {
+      let unlisten: () => void;
+      watch(key, (newValue) => {
         setValue(newValue);
+      }).then((it) => {
+        unlisten = it;
       });
       return () => {
-        unwatch();
+        unlisten?.();
       };
     }, []);
 

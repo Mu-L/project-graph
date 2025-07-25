@@ -125,6 +125,8 @@ export class Project {
    */
   private encoder = new Encoder();
   private decoder = new Decoder();
+  public maxFps = 0;
+  private lastFrameTime = 0;
 
   constructor(
     /**
@@ -222,11 +224,14 @@ export class Project {
 
   loop() {
     if (this.rafHandle !== -1) return;
-    const animationFrame = () => {
-      this.tick();
+    const animationFrame = (t: number) => {
       this.rafHandle = requestAnimationFrame(animationFrame.bind(this));
+      if (this.maxFps > 0 && t - this.lastFrameTime > 1000 / this.maxFps) {
+        this.lastFrameTime = t;
+        this.tick();
+      }
     };
-    animationFrame();
+    requestAnimationFrame(animationFrame.bind(this));
   }
   pause() {
     if (this.rafHandle === -1) return;

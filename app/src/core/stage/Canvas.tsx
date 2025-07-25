@@ -13,7 +13,15 @@ export class Canvas {
     public element: HTMLCanvasElement = document.createElement("canvas"),
   ) {
     element.tabIndex = 0;
-    element.addEventListener("mousemove", () => element.focus());
+    element.addEventListener("mousemove", () => {
+      element.focus();
+    });
+    element.addEventListener("focus", () => {
+      this.project.maxFps = Settings.sync.maxFps;
+    });
+    element.addEventListener("blur", () => {
+      this.project.maxFps = Settings.sync.maxFpsUnfocused;
+    });
     this.ctx = element.getContext("2d", {
       alpha: Settings.sync.windowBackgroundAlpha !== 1,
     })!;
