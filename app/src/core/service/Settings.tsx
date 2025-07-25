@@ -300,9 +300,9 @@ export namespace Settings {
       return res;
     }
   }
-  export function set<K extends keyof Settings>(key: K, value: Settings[K]) {
-    store.set(key, value);
-    store.save();
+  export async function set<K extends keyof Settings>(key: K, value: Settings[K]) {
+    await store.set(key, value);
+    await store.save();
     sync[key] = value;
   }
 

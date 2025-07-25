@@ -31,7 +31,7 @@ export function SettingField({
   kind?: "file" | "directory";
   extra?: React.ReactNode;
 }) {
-  const [value, setValue] = React.useState<any>(Settings.defaultSettings[settingKey]);
+  const [value, setValue] = React.useState<any>();
   const { t, i18n } = useTranslation("settings");
 
   React.useEffect(() => {
